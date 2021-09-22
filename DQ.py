@@ -155,6 +155,7 @@ def accuracy(node, df_window,Distances,SS):
 
     Closest_Station=Distances.codigoSerial_ES.loc[node]    
     Closest_Station2=Distances.codigoSerial_ES2.loc[node] 
+    
     if Closest_Station in SS.keys():
         #Clean values out of range
         SS[Closest_Station].loc[SS[Closest_Station]["pm25"]<=0,"pm25"]=np.nan
@@ -211,10 +212,10 @@ def concordance(node, df_window,Distances,SS):
             df_window.loc[df_window.fechaHora == time,"v_pm25"]=v
 
     #Comparability / Concordance
-    corr_df = df_window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
+    corr_df =   df_window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
     corr_nova = df_window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[1].abs()
     conco_dict={"codigoSerial":node,"concordance_df_nova":corr_df.pm25_nova,
-                "concordance_df_siata":corr_df.v_pm25,"concordance_df_hum":corr_df.humedad_relativa,"concordance_df_temp":corr_df.temperatura,
+                "concordance_df_siata":  corr_df.v_pm25,  "concordance_df_hum":  corr_df.humedad_relativa,  "concordance_df_temp":  corr_df.temperatura,
                 "concordance_nova_siata":corr_nova.v_pm25,"concordance_nova_hum":corr_nova.humedad_relativa,"concordance_nova_temp":corr_nova.temperatura}
     return conco_dict
     
