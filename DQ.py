@@ -17,40 +17,41 @@ import json
 import haversine as hs
 import wx
 #holaaaa
+#HOLA2
 
 
 #Read Data from February
-header_CC=["codigoSerial", "fecha", "hora", "fechaHora", "temperatura", "humedad_relativa", "pm1_df", "pm10_df", "pm25_df", "pm1_nova", "pm10_nova", "pm25_nova", "calidad_temperatura", "calidad_humedad_relativa", "calidad_pm1_df", "calidad_pm10_df", "calidad_pm25_df", "calidad_pm1_nova", "calidad_pm10_nova", "calidad_pm25_nova"]
-datatypes_CC={"codigoSerial":np.uint16, "temperatura":np.float16, "humedad_relativa":np.float16, "pm1_df":np.float32, "pm10_df":np.float32, "pm25_df":np.float32, "pm1_nova":np.float32, "pm10_nova":np.float32, "pm25_nova":np.float32}
-df_CC = pd.read_csv("C:/Users/julio/Documents/UDEA/Maestría/DQ in IOT/Datasets/SIATA_CS/SplitDatosCC/Samples/"+"February.csv", header=None, names=header_CC, usecols=header_CC , dtype=datatypes_CC,parse_dates=["fecha","hora","fechaHora"])
+#header_CC=["codigoSerial", "fecha", "hora", "fechaHora", "temperatura", "humedad_relativa", "pm1_df", "pm10_df", "pm25_df", "pm1_nova", "pm10_nova", "pm25_nova", "calidad_temperatura", "calidad_humedad_relativa", "calidad_pm1_df", "calidad_pm10_df", "calidad_pm25_df", "calidad_pm1_nova", "calidad_pm10_nova", "calidad_pm25_nova"]
+#datatypes_CC={"codigoSerial":np.uint16, "temperatura":np.float16, "humedad_relativa":np.float16, "pm1_df":np.float32, "pm10_df":np.float32, "pm25_df":np.float32, "pm1_nova":np.float32, "pm10_nova":np.float32, "pm25_nova":np.float32}
+#df_CC = pd.read_csv("C:/Users/julio/Documents/UDEA/Maestría/DQ in IOT/Datasets/SIATA_CS/SplitDatosCC/Samples/"+"February.csv", header=None, names=header_CC, usecols=header_CC , dtype=datatypes_CC,parse_dates=["fecha","hora","fechaHora"])
 
 #Data includes January, February and March
-header_SS=["Fecha_Hora","codigoSerial","pm25","calidad_pm25","pm10","calidad_pm10"]
-datatypes_SS={"codigoSerial":np.uint16,"pm25":np.float32,"pm10":np.float32}
-df_SS = pd.read_csv("C:/Users/julio/Documents/UDEA/Maestría/DQ in IOT/Datasets/SIATA Stations/PM/"+"SS_PM.csv", header=None,names=header_SS, usecols=header_SS , dtype=datatypes_SS,parse_dates=["Fecha_Hora"])
+#header_SS=["Fecha_Hora","codigoSerial","pm25","calidad_pm25","pm10","calidad_pm10"]
+#datatypes_SS={"codigoSerial":np.uint16,"pm25":np.float32,"pm10":np.float32}
+#df_SS = pd.read_csv("C:/Users/julio/Documents/UDEA/Maestría/DQ in IOT/Datasets/SIATA Stations/PM/"+"SS_PM.csv", header=None,names=header_SS, usecols=header_SS , dtype=datatypes_SS,parse_dates=["Fecha_Hora"])
 
 
-grouped=df_CC.groupby(df_CC.codigoSerial)
-CC={}
-print("Citizen Scientist: ", sorted(list(df_CC.codigoSerial.unique())))
-for i in df_CC.codigoSerial.unique():
-    CC[i] = grouped.get_group(i).sort_values(by=['fechaHora'],ignore_index=True)
-del df_CC
+#grouped=df_CC.groupby(df_CC.codigoSerial)
+#CC={}
+#print("Citizen Scientist: ", sorted(list(df_CC.codigoSerial.unique())))
+#for i in df_CC.codigoSerial.unique():
+#    CC[i] = grouped.get_group(i).sort_values(by=['fechaHora'],ignore_index=True)
+#del df_CC
 
-grouped=df_SS.groupby(df_SS.codigoSerial)
-SS={}
-print("Siata Stations: ", list(df_SS.codigoSerial.unique()))
-for j in df_SS.codigoSerial.unique():
-    SS[j] = grouped.get_group(j).sort_values(by=['Fecha_Hora'],ignore_index=True)
-del df_SS
-del grouped
+#grouped=df_SS.groupby(df_SS.codigoSerial)
+#SS={}
+#print("Siata Stations: ", list(df_SS.codigoSerial.unique()))
+#for j in df_SS.codigoSerial.unique():
+#    SS[j] = grouped.get_group(j).sort_values(by=['Fecha_Hora'],ignore_index=True)
+#del df_SS
+#del grouped
 
-datatypesDistances={"codigoSerial_CC":np.uint16,"codigoSerial_ES":np.uint16,"Distancia_a_ES":np.float16,"codigoSerial_ES2":np.uint16}
-Distances = pd.read_csv("C:/Users/julio/Documents/UDEA/Maestría/DQ in IOT/Datasets/Distances and positions/Distancias_2.csv", header=0, dtype=datatypesDistances,index_col="codigoSerial_CC")
+#datatypesDistances={"codigoSerial_CC":np.uint16,"codigoSerial_ES":np.uint16,"Distancia_a_ES":np.float16,"codigoSerial_ES2":np.uint16}
+#Distances = pd.read_csv("C:/Users/julio/Documents/UDEA/Maestría/DQ in IOT/Datasets/Distances and positions/Distancias_2.csv", header=0, dtype=datatypesDistances,index_col="codigoSerial_CC")
 
 
-start_time ="2020-02-10 00:00:00"
-end_time   ="2020-02-10 05:59:00"
+#start_time ="2020-02-10 00:00:00"
+#end_time   ="2020-02-10 05:59:00"
 
 def clean_data(node, CC, start_time, end_time):
     
@@ -218,7 +219,7 @@ def concordance(node, df_window,Distances,SS):
     return conco_dict
     
     
-def completeness(node, df_window):
+def completeness(node, df_window, start_time, end_time):
     #ref_date_range = pd.date_range(inicio, fin, freq='1Min')
     #ref_date_range = pd.DataFrame(ref_date_range,columns=["ref_fechaHora"])
     ref_date_range = pd.DataFrame(pd.date_range(start_time, end_time, freq='1Min'),columns=["ref_fechaHora"])
@@ -244,8 +245,13 @@ def completeness(node, df_window):
 
 
 contador=0
-def eval_dq(nodes):
-    
+def eval_dq(arguments):
+    nodes=arguments[0]
+    CC=arguments[1]
+    SS=arguments[2]
+    Distances=arguments[3]
+    start_time=arguments[4]
+    end_time=arguments[5]
 
     #contador+=1
     #CC[nube]["v_pm25"] = np.nan
@@ -276,7 +282,7 @@ def eval_dq(nodes):
     
     #COMPLETENESS
     #df_comple=df_comple.append(completeness(nodes, df_window), ignore_index = True)
-    df_comple=completeness(nodes, df_window)
+    df_comple=completeness(nodes, df_window, start_time, end_time)
     #print("%d. Nube: %d, Completeness." %(contador,nodes))
 
     #COMPARABILITY / Concordance
