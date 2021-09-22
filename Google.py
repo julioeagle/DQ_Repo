@@ -13,9 +13,9 @@ def Create_Service(client_secret_file, api_name, api_version, scopes):
     CLIENT_SECRET_FILE = client_secret_file
     API_SERVICE_NAME = api_name
     API_VERSION = api_version
-    #SCOPES = [scope for scope in scopes[0]]
-    SCOPES = scopes[0]
-    print(SCOPES)
+    SCOPES = [scope for scope in scopes[0]]
+    #SCOPES = scopes[0]
+    print("EL SCOPE ES", SCOPES)
     
     cred = None
     
@@ -41,28 +41,3 @@ def Create_Service(client_secret_file, api_name, api_version, scopes):
         print(e)
         return None
 
-def Export_Data_To_Sheets(service, df_preci, df_uncer, df_conco, df_accur, df_comple):
-
-    df_preci.replace(np.nan, '', inplace=True)
-
-    response_date = service.spreadsheets().values().append(
-        spreadsheetId=gsheetId,
-        valueInputOption='RAW',
-        range='PRECISION!A1',
-        body=dict(
-            majorDimension='ROWS',
-            values=df_preci.T.reset_index().T.values.tolist())
-    ).execute()
-
-
-
-    df_uncer.replace(np.nan, '', inplace=True)
-
-    response_date = service.spreadsheets().values().append(
-        spreadsheetId=gsheetId,
-        valueInputOption='RAW',
-        range='UNCERTAINTY!A1',
-        body=dict(
-            majorDimension='ROWS',
-            values=df_uncer.T.reset_index().T.values.tolist())
-    ).execute()
