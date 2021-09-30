@@ -17,6 +17,7 @@ import requests
 import json
 import haversine as hs
 import wx
+#hola
 
 #FUNCTION TO READ THE PATH WITH A DIALOG BOX
 def get_path(wildcard, title):
@@ -158,15 +159,12 @@ def concordance(node, hour, window, Distances, SS):
     Closest_Station=Distances.codigoSerial_ES.loc[node]
     Closest_Station2=Distances.codigoSerial_ES.loc[node]
     window=window.copy()
-    #window.loc[:,'v_pm25']=np.nan
     if (Closest_Station in SS.keys()) and (hour in SS[Closest_Station].Fecha_Hora.values):
         
-        #window.loc[window[,"v_pm25"]=np.nan
-        
-        #v=SS[Closest_Station].loc[SS[Closest_Station].Fecha_Hora==hour,"pm25"].values[0]
-        #window.loc[:,'v_pm25']=v
-        
+   
         v=SS[Closest_Station].loc[SS[Closest_Station].Fecha_Hora==hour,"pm25"].values[0]
+        vm=window.pm25_df.mean()
+        pair=[vm,v]
         window.loc[:,"v_pm25"]=v
         
         corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
@@ -183,6 +181,8 @@ def concordance(node, hour, window, Distances, SS):
     elif (Closest_Station2 in SS.keys()) and (hour in SS[Closest_Station2].Fecha_Hora.values):
         
         v=SS[Closest_Station2].loc[SS[Closest_Station2].Fecha_Hora==hour,"pm25"].values[0]
+        vm=window.pm25_df.mean()
+        pair=[vm,v]
         window.loc[:,"v_pm25"]=v
         
         corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
@@ -202,6 +202,8 @@ def concordance(node, hour, window, Distances, SS):
         concordance_nova_siata=np.nan
         concordance_nova_hum=np.nan
         concordance_nova_temp=np.nan
+        
+        pair=[np.nan,np.nan]
        
     conco_dict={"concordance_df_nova_time":concordance_df_nova,
                 "concordance_df_siata":concordance_df_siata,
@@ -209,7 +211,9 @@ def concordance(node, hour, window, Distances, SS):
                 "concordance_df_temp_time":concordance_df_temp,
                 "concordance_nova_siata":concordance_nova_siata,
                 "concordance_nova_hum_time":concordance_nova_hum,
-                "concordance_nova_temp_time":concordance_nova_temp}
+                "concordance_nova_temp_time":concordance_nova_temp,
+                "vm":pair[0],
+                "v":pair[1]}
     return conco_dict
 
 
@@ -262,7 +266,7 @@ def eval_dq(arguments):
     #print(node_dataset)
     #times = pd.to_datetime(node_dataset.fechaHora)
     hourly_groups=node_dataset.groupby([node_dataset.fechaHora.dt.floor('60min')])#Para agrupar por cada hora
-    hourly_groups.groups.keys()# O grupos.groups para obtener las claves de cada grupo, es decir cada hora
+    #hourly_groups.groups.keys()# O grupos.groups para obtener las claves de cada grupo, es decir cada hora
     del node_dataset
     
 
@@ -286,13 +290,15 @@ def eval_dq(arguments):
                   "concordance_nova_siata",#MAYBE NEED TO BE CALCULATED ON A DAILY BASIS
                   "concordance_nova_hum_time",
                   "concordance_nova_temp_time",
+                  "vm",
+                  "v",
                  
                   "duplicates_time"])
     
     #2. For each group (hour in a CC node data), calculate the Dimension's DQ. (The functions should be applied to each group instead)
     for hour in hourly_groups.groups.keys():
         window=hourly_groups.get_group(hour)
-        #window['v_pm25']=np.nan
+        
         
         preci_dict_time=precision(window)
         uncer_dict_time=uncertainty(window)
@@ -301,7 +307,7 @@ def eval_dq(arguments):
         comp_dict_time=completeness(nodes, window,start_time, end_time)
         dupli_dict_time=duplicates(window)
         
-        DQ_dict_time={"codigoSerial":nodes,"fechaHora":hour}
+        DQ_dict_time={"codigoSerial":nodes,"fechaHora":pd.Timestamp(hour)}
         DQ_dict_time.update(preci_dict_time)
         DQ_dict_time.update(uncer_dict_time)
         DQ_dict_time.update(accur_dict_time)
@@ -312,5 +318,15 @@ def eval_dq(arguments):
         
         #3. Save the result file in the form: Node, Group (hour), DQ_1, DQ_2, DQ3, ... , DQIndex  (This is new)
         dim_time=dim_time.append(DQ_dict_time, ignore_index = True)
+    
+    dim_time['fechaHora']= pd.to_datetime(dim_time['fechaHora'])
+    daily_groups=dim_time.groupby([dim_time.fechaHora.dt.floor('1D')])#Para agrupar por cada día
+
+    for day in daily_groups.groups.keys():
+        day_window=daily_groups.get_group(day)
+        dim_time.loc[(dim_time.fechaHora>=day.floor('1D')) & (dim_time.fechaHora<(day+timedelta(minutes=1)).ceil('1D'))
+                     ,"concordance_df_siata"]=day_window.v.corr(day_window.vm)
+
+        #
     
     return dim_time
