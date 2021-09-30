@@ -163,8 +163,9 @@ def concordance(node, hour, window, Distances, SS):
         
    
         v=SS[Closest_Station].loc[SS[Closest_Station].Fecha_Hora==hour,"pm25"].values[0]
-        vm=window.pm25_df.mean()
-        pair=[vm,v]
+        vm_df=window.pm25_df.mean()
+        vm_nova=window.pm25_nova.mean()
+        pair=[vm_df,vm_nova,v]
         window.loc[:,"v_pm25"]=v
         
         corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
@@ -181,8 +182,9 @@ def concordance(node, hour, window, Distances, SS):
     elif (Closest_Station2 in SS.keys()) and (hour in SS[Closest_Station2].Fecha_Hora.values):
         
         v=SS[Closest_Station2].loc[SS[Closest_Station2].Fecha_Hora==hour,"pm25"].values[0]
-        vm=window.pm25_df.mean()
-        pair=[vm,v]
+        vm_df=window.pm25_df.mean()
+        vm_nova=window.pm25_nova.mean()
+        pair=[vm_df,vm_nova,v]
         window.loc[:,"v_pm25"]=v
         
         corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
@@ -203,7 +205,7 @@ def concordance(node, hour, window, Distances, SS):
         concordance_nova_hum=np.nan
         concordance_nova_temp=np.nan
         
-        pair=[np.nan,np.nan]
+        pair=[np.nan,np.nan,np.nan]
        
     conco_dict={"concordance_df_nova_time":concordance_df_nova,
                 "concordance_df_siata":concordance_df_siata,
@@ -212,8 +214,9 @@ def concordance(node, hour, window, Distances, SS):
                 "concordance_nova_siata":concordance_nova_siata,
                 "concordance_nova_hum_time":concordance_nova_hum,
                 "concordance_nova_temp_time":concordance_nova_temp,
-                "vm":pair[0],
-                "v":pair[1]}
+                "vm_df":pair[0],
+                "vm_nova":pair[1],
+                "v":pair[2]}
     return conco_dict
 
 
@@ -290,7 +293,8 @@ def eval_dq(arguments):
                   "concordance_nova_siata",#MAYBE NEED TO BE CALCULATED ON A DAILY BASIS
                   "concordance_nova_hum_time",
                   "concordance_nova_temp_time",
-                  "vm",
+                  "vm_df",
+                  "vm_nova",
                   "v",
                  
                   "duplicates_time"])
@@ -324,9 +328,10 @@ def eval_dq(arguments):
 
     for day in daily_groups.groups.keys():
         day_window=daily_groups.get_group(day)
-        dim_time.loc[(dim_time.fechaHora>=day.floor('1D')) & (dim_time.fechaHora<(day+timedelta(minutes=1)).ceil('1D'))
-                     ,"concordance_df_siata"]=day_window.v.corr(day_window.vm)
+        indexes=(dim_time.fechaHora>=day.floor('1D')) & (dim_time.fechaHora<(day+timedelta(minutes=1)).ceil('1D'))
+        dim_time.loc[indexes,"concordance_df_siata"]=abs(day_window.v.corr(day_window.vm_df))
+        dim_time.loc[indexes,"concordance_nova_siata"]=abs(day_window.v.corr(day_window.vm_nova))
 
-        #
+        
     
     return dim_time
