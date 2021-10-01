@@ -161,54 +161,33 @@ def accuracy(node,hour, window, Distances, SS):
 def concordance(node, hour, window, Distances, SS):
     Closest_Station=Distances.codigoSerial_ES.loc[node]
     Closest_Station2=Distances.codigoSerial_ES.loc[node]
-    window=window.copy()
+    
     if (Closest_Station in SS.keys()) and (hour in SS[Closest_Station].Fecha_Hora.values):
-        
-   
+
         v=SS[Closest_Station].loc[SS[Closest_Station].Fecha_Hora==hour,"pm25"].values[0]
-        vm_df=window.pm25_df.mean()
-        vm_nova=window.pm25_nova.mean()
-        pair=[vm_df,vm_nova,v]
-        window.loc[:,"v_pm25"]=v
-        
-        corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
-        corr_nova = window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[1].abs()
-        concordance_df_nova=corr_df.pm25_nova
-        concordance_df_siata=corr_df.v_pm25
-        concordance_df_hum=corr_df.humedad_relativa
-        concordance_df_temp=corr_df.temperatura
-        concordance_nova_siata=corr_nova.v_pm25
-        concordance_nova_hum=corr_nova.humedad_relativa
-        concordance_nova_temp=corr_nova.temperatura
-   
             
     elif (Closest_Station2 in SS.keys()) and (hour in SS[Closest_Station2].Fecha_Hora.values):
         
         v=SS[Closest_Station2].loc[SS[Closest_Station2].Fecha_Hora==hour,"pm25"].values[0]
-        vm_df=window.pm25_df.mean()
-        vm_nova=window.pm25_nova.mean()
-        pair=[vm_df,vm_nova,v]
-        window.loc[:,"v_pm25"]=v
-        
-        corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
-        corr_nova = window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[1].abs()
-        concordance_df_nova=corr_df.pm25_nova
-        concordance_df_siata=corr_df.v_pm25
-        concordance_df_hum=corr_df.humedad_relativa
-        concordance_df_temp=corr_df.temperatura
-        concordance_nova_siata=corr_nova.v_pm25
-        concordance_nova_hum=corr_nova.humedad_relativa
-        concordance_nova_temp=corr_nova.temperatura
+
     else:
-        concordance_df_nova=np.nan
-        concordance_df_siata=np.nan
-        concordance_df_hum=np.nan
-        concordance_df_temp=np.nan
-        concordance_nova_siata=np.nan
-        concordance_nova_hum=np.nan
-        concordance_nova_temp=np.nan
+       
+        v=np.nan
         
-        pair=[np.nan,np.nan,np.nan]
+    window=window.copy()
+    window.loc[:,"v_pm25"]=v
+    vm_df=window.pm25_df.mean()
+    vm_nova=window.pm25_nova.mean()
+    pair=[vm_df,vm_nova,v]
+    corr_df =   window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[0].abs()
+    corr_nova = window.loc[:,["pm25_df","pm25_nova","v_pm25","temperatura","humedad_relativa"]].corr().iloc[1].abs()
+    concordance_df_nova=corr_df.pm25_nova
+    concordance_df_siata=corr_df.v_pm25
+    concordance_df_hum=corr_df.humedad_relativa
+    concordance_df_temp=corr_df.temperatura
+    concordance_nova_siata=corr_nova.v_pm25
+    concordance_nova_hum=corr_nova.humedad_relativa
+    concordance_nova_temp=corr_nova.temperatura
        
     conco_dict={"concordance_df_nova_time":concordance_df_nova,
                 "concordance_df_siata":concordance_df_siata,
@@ -221,7 +200,6 @@ def concordance(node, hour, window, Distances, SS):
                 "vm_nova":pair[1],
                 "v":pair[2]}
     return conco_dict
-
 
 #COMPLETENESS
 def completeness(node, window,start_time, end_time):
