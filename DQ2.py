@@ -5,6 +5,7 @@ import numpy as np
 from scipy import signal
 from scipy.stats import uniform
 from scipy.stats import norm
+from scipy import stats
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import plot_confusion_matrix
 import csv
@@ -17,6 +18,8 @@ import requests
 import json
 import haversine as hs
 import wx
+
+
 #hola
 
 #FUNCTION TO READ THE PATH WITH A DIALOG BOX
@@ -249,11 +252,27 @@ def completeness(node, window,start_time, end_time):
     comp_dict_time={'completeness_df_time':comp_df, 'completeness_nova_time':comp_nova}        
     return comp_dict_time
 
+#REDUNDANCY/DUPLICATES
 def duplicates(window):
     repeated=len(window.index)-window['fechaHora'].nunique()
     duplic=1-repeated/len(window.index)
     dupli_dict_time={'duplicates_time':duplic} 
     return dupli_dict_time
+
+#CONFIDENCE
+def confidence(window, STD_df, STD_nova, p):
+    
+    alpha = 1-p/100
+    z = stats.norm.ppf(1-alpha/2)#2-sided test
+    
+    n=np.count_nonzero(~np.isnan(window['pm25_df']))
+    confi_df  = 1 - (z*STD_df/np.sqrt(n))/window.pm25_df.mean()
+    
+    n=np.count_nonzero(~np.isnan(window['pm25_nova']))
+    confi_nova= 1 - (z*STD_df/np.sqrt(n))/window.pm25_nova.mean()
+       
+    confi_dict_time={'confi_df_time':confi_df,'confi_nova_time':confi_nova}
+    return confi_dict_time
 
 def eval_dq(arguments):
     nodes=arguments[0]
@@ -262,10 +281,13 @@ def eval_dq(arguments):
     Distances=arguments[3]
     start_time=arguments[4]
     end_time=arguments[5]
+    p=arguments[6]
     
     #1. For each citizen science (CC) node, get the groups (HOURLY GROUPS).
     #node_dataset=CC[nodes]
     node_dataset=CC[nodes][(CC[nodes]['fechaHora'] >= start_time) & (CC[nodes]['fechaHora'] <= end_time)]
+    STD_df=node_dataset.pm25_df.std()
+    STD_nova=node_dataset.pm25_nova.std()
     #print(node_dataset)
     #times = pd.to_datetime(node_dataset.fechaHora)
     hourly_groups=node_dataset.groupby([node_dataset.fechaHora.dt.floor('60min')])#Para agrupar por cada hora
@@ -297,7 +319,10 @@ def eval_dq(arguments):
                   "vm_nova",
                   "v",
                  
-                  "duplicates_time"])
+                  "duplicates_time",
+                  
+                  "confi_df_time",
+                  "confi_nova_time"])
     
     #2. For each group (hour in a CC node data), calculate the Dimension's DQ. (The functions should be applied to each group instead)
     for hour in hourly_groups.groups.keys():
@@ -310,6 +335,7 @@ def eval_dq(arguments):
         conco_dict_time=concordance(nodes, hour, window, Distances, SS)
         comp_dict_time=completeness(nodes, window,start_time, end_time)
         dupli_dict_time=duplicates(window)
+        confi_dict_time=confidence(window, STD_df, STD_nova, p)
         
         DQ_dict_time={"codigoSerial":nodes,"fechaHora":pd.Timestamp(hour)}
         DQ_dict_time.update(preci_dict_time)
@@ -318,6 +344,7 @@ def eval_dq(arguments):
         DQ_dict_time.update(conco_dict_time)
         DQ_dict_time.update(comp_dict_time)
         DQ_dict_time.update(dupli_dict_time)
+        DQ_dict_time.update(confi_dict_time)
         
         
         #3. Save the result file in the form: Node, Group (hour), DQ_1, DQ_2, DQ3, ... , DQIndex  (This is new)
