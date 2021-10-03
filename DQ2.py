@@ -190,10 +190,10 @@ def concordance(node, hour, window, Distances, SS):
     concordance_nova_temp=corr_nova.temperatura
        
     conco_dict={"concordance_df_nova_time":concordance_df_nova,
-                "concordance_df_siata":concordance_df_siata,
+                "concordance_df_siata_time":concordance_df_siata,
                 "concordance_df_hum_time":concordance_df_hum,
                 "concordance_df_temp_time":concordance_df_temp,
-                "concordance_nova_siata":concordance_nova_siata,
+                "concordance_nova_siata_time":concordance_nova_siata,
                 "concordance_nova_hum_time":concordance_nova_hum,
                 "concordance_nova_temp_time":concordance_nova_temp,
                 "vm_df":pair[0],
@@ -286,11 +286,11 @@ def eval_dq(arguments):
                   
                   "concordance_df_nova_time",
                   
-                  "concordance_df_siata",#MAYBE NEED TO BE CALCULATED ON A DAILY BASIS
+                  "concordance_df_siata_time",
                   "concordance_df_hum_time",
                   "concordance_df_temp_time",
                   
-                  "concordance_nova_siata",#MAYBE NEED TO BE CALCULATED ON A DAILY BASIS
+                  "concordance_nova_siata_time",
                   "concordance_nova_hum_time",
                   "concordance_nova_temp_time",
                   "vm_df",
@@ -334,9 +334,57 @@ def eval_dq(arguments):
     for day in daily_groups.groups.keys():
         day_window=daily_groups.get_group(day)
         indexes=(dim_time.fechaHora>=day.floor('1D')) & (dim_time.fechaHora<(day+timedelta(minutes=1)).ceil('1D'))
-        dim_time.loc[indexes,"concordance_df_siata"]=abs(day_window.v.corr(day_window.vm_df))
-        dim_time.loc[indexes,"concordance_nova_siata"]=abs(day_window.v.corr(day_window.vm_nova))
+        dim_time.loc[indexes,"concordance_df_siata_time"]=abs(day_window.v.corr(day_window.vm_df))
+        dim_time.loc[indexes,"concordance_nova_siata_time"]=abs(day_window.v.corr(day_window.vm_nova))
 
-        
     
-    return dim_time
+    
+    
+    col =        ["precision_df_time",
+                  "precision_nova_time",
+                  "uncertainty_time",
+                  "accuracy_df_time",
+                  "accuracy_nova_time",
+                  "completeness_df_time",
+                  "completeness_nova_time",
+                  
+                  "concordance_df_nova_time",
+                  
+                  "concordance_df_siata_time",
+                  "concordance_df_hum_time",
+                  "concordance_df_temp_time",
+                  
+                  "concordance_nova_siata_time",
+                  "concordance_nova_hum_time",
+                  "concordance_nova_temp_time",
+                 
+                  "duplicates_time",
+                  
+                  "confi_df_time",
+                  "confi_nova_time"]
+    
+    #dim_node = pd.DataFrame(columns =["codigoSerial"])
+    
+    dim_node= dim_time[col].mean()
+    dim_node.rename({'precision_df_time': 'precision_df_node', 
+                                 'precision_nova_time': 'precision_nova_node', 
+                                 'uncertainty_time': 'uncertainty_node', 
+                                 'accuracy_df_time': 'accuracy_df_node', 
+                                 'accuracy_nova_time': 'accuracy_nova_node', 
+                                 'completeness_df_time': 'completeness_df_node', 
+                                 'completeness_nova_time': 'completeness_nova_node', 
+                                 'concordance_df_nova_time': 'concordance_df_nova_node', 
+                                 'concordance_df_siata_time': 'concordance_df_siata_node', 
+                                 'concordance_df_hum_time': 'concordance_df_hum_node', 
+                                 'concordance_df_temp_time': 'concordance_df_temp_node', 
+                                 'concordance_nova_siata_time': 'concordance_nova_siata_node', 
+                                 'concordance_nova_hum_time': 'concordance_nova_hum_node', 
+                                 'concordance_nova_temp_time': 'concordance_nova_temp_node', 
+                                 'duplicates_time': 'duplicates_node', 
+                                 'confi_df_time': 'confi_df_node', 
+                                 'confi_nova_time': 'confi_nova_node'        }, axis=1, inplace=True)
+    
+    dim_node["codigoSerial"]=nodes
+    #dim_node.insert(0, "codigoSerial", nodes, allow_duplicates=True)
+    
+    return [dim_time, dim_node]
