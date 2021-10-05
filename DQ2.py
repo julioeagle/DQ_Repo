@@ -108,15 +108,15 @@ def clean_sort_data(df_CC, df_SS):
 #Precision
 def precision(window):
 
-    prec_df=1-(window['pm25_df'].std()/window['pm25_df'].mean())# 1-Coefficient of Variation (std/mean)
-    prec_nova=1-(window['pm25_nova'].std()/window['pm25_nova'].mean())# 1-Coefficient of Variation (std/mean)
+    prec_df=max(0,1-(window['pm25_df'].std()/window['pm25_df'].mean()))# 1-Coefficient of Variation (std/mean)
+    prec_nova=max(0,1-(window['pm25_nova'].std()/window['pm25_nova'].mean()))# 1-Coefficient of Variation (std/mean)
     prec_dict_time={"precision_df_time":prec_df,"precision_nova_time":prec_nova}
     return prec_dict_time
 
 
 #Uncertainty
 def uncertainty(window):
-    uncert=1-np.sqrt((window.pm25_df-window.pm25_nova).pow(2).mean()/2)/((window.pm25_df+window.pm25_nova).mean()/2)
+    uncert=max(0,1-np.sqrt((window.pm25_df-window.pm25_nova).pow(2).mean()/2)/((window.pm25_df+window.pm25_nova).mean()/2))
     uncer_dict_time={"uncertainty_time":uncert}
     return uncer_dict_time   
 
@@ -244,10 +244,10 @@ def confidence(window, STD_df, STD_nova, p):
     z = stats.norm.ppf(1-alpha/2)#2-sided test
     
     n=np.count_nonzero(~np.isnan(window['pm25_df']))
-    confi_df  = 1 - (z*STD_df/np.sqrt(n))/window.pm25_df.mean()
+    confi_df  = max(0,1 - (z*STD_df/np.sqrt(n))/window.pm25_df.mean())
     
     n=np.count_nonzero(~np.isnan(window['pm25_nova']))
-    confi_nova= 1 - (z*STD_df/np.sqrt(n))/window.pm25_nova.mean()
+    confi_nova= max(0,1 - (z*STD_df/np.sqrt(n))/window.pm25_nova.mean())
        
     confi_dict_time={'confi_df_time':confi_df,'confi_nova_time':confi_nova}
     return confi_dict_time
