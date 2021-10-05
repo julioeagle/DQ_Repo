@@ -367,24 +367,24 @@ def eval_dq(arguments):
     
     dim_node= dim_time[col].mean()
     dim_node.rename({'precision_df_time': 'precision_df_node', 
-                                 'precision_nova_time': 'precision_nova_node', 
-                                 'uncertainty_time': 'uncertainty_node', 
-                                 'accuracy_df_time': 'accuracy_df_node', 
-                                 'accuracy_nova_time': 'accuracy_nova_node', 
-                                 'completeness_df_time': 'completeness_df_node', 
-                                 'completeness_nova_time': 'completeness_nova_node', 
-                                 'concordance_df_nova_time': 'concordance_df_nova_node', 
-                                 'concordance_df_siata_time': 'concordance_df_siata_node', 
-                                 'concordance_df_hum_time': 'concordance_df_hum_node', 
-                                 'concordance_df_temp_time': 'concordance_df_temp_node', 
-                                 'concordance_nova_siata_time': 'concordance_nova_siata_node', 
-                                 'concordance_nova_hum_time': 'concordance_nova_hum_node', 
-                                 'concordance_nova_temp_time': 'concordance_nova_temp_node', 
-                                 'duplicates_time': 'duplicates_node', 
-                                 'confi_df_time': 'confi_df_node', 
-                                 'confi_nova_time': 'confi_nova_node'        }, axis=1, inplace=True)
+                     'precision_nova_time': 'precision_nova_node', 
+                     'uncertainty_time': 'uncertainty_node', 
+                     'accuracy_df_time': 'accuracy_df_node', 
+                     'accuracy_nova_time': 'accuracy_nova_node', 
+                     'completeness_df_time': 'completeness_df_node', 
+                     'completeness_nova_time': 'completeness_nova_node', 
+                     'concordance_df_nova_time': 'concordance_df_nova_node', #
+                     'concordance_df_siata_time': 'concordance_df_siata_node', #
+                     'concordance_df_hum_time': 'concordance_df_hum_node', 
+                     'concordance_df_temp_time': 'concordance_df_temp_node', 
+                     'concordance_nova_siata_time': 'concordance_nova_siata_node', #
+                     'concordance_nova_hum_time': 'concordance_nova_hum_node', 
+                     'concordance_nova_temp_time': 'concordance_nova_temp_node', 
+                     'duplicates_time': 'duplicates_node', 
+                     'confi_df_time': 'confi_df_node', 
+                     'confi_nova_time': 'confi_nova_node'        }, axis=1, inplace=True)
     
     dim_node["codigoSerial"]=nodes
-    #dim_node.insert(0, "codigoSerial", nodes, allow_duplicates=True)
-    
+
+        
     return [dim_time, dim_node]
