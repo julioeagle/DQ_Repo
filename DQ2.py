@@ -41,6 +41,7 @@ def clean_sort_data(df_CC, df_SS):
     #Remove outliers that are out of range, from documentation both nova and df range of measurements are [0,999], [-40,70], [1,100]
     #For PM2.5, Temperature and Relative Humidity Respectively.
     df_CC=df_CC.copy()
+    
     df_CC.loc[df_CC["pm25_nova"]>999,"pm25_nova"]=np.nan
     df_CC.loc[df_CC["pm25_nova"]<0,"pm25_nova"]=np.nan
     df_CC.loc[df_CC["pm25_df"]>999,"pm25_df"]=np.nan
@@ -260,7 +261,7 @@ def eval_dq(arguments):
     start_time=arguments[4]
     end_time=arguments[5]
     p=arguments[6]
-    
+    print("no se imprime")
     #1. For each citizen science (CC) node, get the groups (HOURLY GROUPS).
     #node_dataset=CC[nodes]
     node_dataset=CC[nodes][(CC[nodes]['fechaHora'] >= start_time) & (CC[nodes]['fechaHora'] <= end_time)]
