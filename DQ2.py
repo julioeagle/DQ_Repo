@@ -44,10 +44,13 @@ def clean_sort_data(df_CC, df_SS):
     
     df_CC.loc[df_CC["pm25_nova"]>999,"pm25_nova"]=np.nan
     df_CC.loc[df_CC["pm25_nova"]<0,"pm25_nova"]=np.nan
+    
     df_CC.loc[df_CC["pm25_df"]>999,"pm25_df"]=np.nan
     df_CC.loc[df_CC["pm25_df"]<0,"pm25_df"]=np.nan
+    
     df_CC.loc[df_CC["temperatura"]>70,"temperatura"]=np.nan
     df_CC.loc[df_CC["temperatura"]<-40,"temperatura"]=np.nan
+    
     df_CC.loc[df_CC["humedad_relativa"]>100,"humedad_relativa"]=np.nan
     df_CC.loc[df_CC["humedad_relativa"]<1,"humedad_relativa"]=np.nan
 
