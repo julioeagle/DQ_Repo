@@ -193,13 +193,13 @@ def concordance(node, hour, window, Distances, SS):
     concordance_nova_hum=corr_nova.humedad_relativa
     concordance_nova_temp=corr_nova.temperatura
        
-    conco_dict={"concordance_df_nova_time":concordance_df_nova,
-                "concordance_df_siata_time":concordance_df_siata,
-                "concordance_df_hum_time":concordance_df_hum,
-                "concordance_df_temp_time":concordance_df_temp,
-                "concordance_nova_siata_time":concordance_nova_siata,
-                "concordance_nova_hum_time":concordance_nova_hum,
-                "concordance_nova_temp_time":concordance_nova_temp,
+    conco_dict={"concordance_df_nova_time"    :concordance_df_nova,
+                "concordance_df_siata_time"   :concordance_df_siata,
+                "concordance_df_hum_time"     :concordance_df_hum,
+                "concordance_df_temp_time"    :concordance_df_temp,
+                "concordance_nova_siata_time" :concordance_nova_siata,
+                "concordance_nova_hum_time"   :concordance_nova_hum,
+                "concordance_nova_temp_time"  :concordance_nova_temp,
                 "vm_df":pair[0],
                 "vm_nova":pair[1],
                 "v":pair[2]}
@@ -242,16 +242,19 @@ def duplicates(window):
     return dupli_dict_time
 
 #CONFIDENCE
-def confidence(window, STD_df, STD_nova, p):
+#def confidence(window, STD_df, STD_nova, p):
+def confidence(window, p):
     
     alpha = 1-p/100
     z = stats.norm.ppf(1-alpha/2)#2-sided test
     
     n=np.count_nonzero(~np.isnan(window['pm25_df']))
-    confi_df  = max(0,1 - (z*STD_df/np.sqrt(n))/window.pm25_df.mean())
+    #confi_df  = max(0,1 - (z*STD_df/np.sqrt(n))/window.pm25_df.mean())
+    confi_df  = max(0,1 - (z*window.pm25_df.std()/np.sqrt(n))/window.pm25_df.mean())
     
     n=np.count_nonzero(~np.isnan(window['pm25_nova']))
-    confi_nova= max(0,1 - (z*STD_df/np.sqrt(n))/window.pm25_nova.mean())
+    #confi_nova= max(0,1 - (z*STD_df/np.sqrt(n))/window.pm25_nova.mean())
+    confi_nova= max(0,1 - (z*window.pm25_nova.std()/np.sqrt(n))/window.pm25_nova.mean())
        
     confi_dict_time={'confi_df_time':confi_df,'confi_nova_time':confi_nova}
     return confi_dict_time
@@ -268,8 +271,8 @@ def eval_dq(arguments):
     #1. For each citizen science (CC) node, get the groups (HOURLY GROUPS).
     #node_dataset=CC[nodes]
     node_dataset=CC[nodes][(CC[nodes]['fechaHora'] >= start_time) & (CC[nodes]['fechaHora'] <= end_time)]
-    STD_df=node_dataset.pm25_df.std()
-    STD_nova=node_dataset.pm25_nova.std()
+    #STD_df=node_dataset.pm25_df.std()
+    #STD_nova=node_dataset.pm25_nova.std()
     #print(node_dataset)
     #times = pd.to_datetime(node_dataset.fechaHora)
     hourly_groups=node_dataset.groupby([node_dataset.fechaHora.dt.floor('60min')])#Para agrupar por cada hora
@@ -317,7 +320,8 @@ def eval_dq(arguments):
         conco_dict_time=concordance(nodes, hour, window, Distances, SS)
         comp_dict_time=completeness(nodes, window,start_time, end_time)
         dupli_dict_time=duplicates(window)
-        confi_dict_time=confidence(window, STD_df, STD_nova, p)
+        #confi_dict_time=confidence(window, STD_df, STD_nova, p)
+        confi_dict_time=confidence(window, p)
         
         DQ_dict_time={"codigoSerial":nodes,"fechaHora":pd.Timestamp(hour)}
         DQ_dict_time.update(preci_dict_time)
