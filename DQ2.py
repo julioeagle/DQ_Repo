@@ -1,4 +1,3 @@
-#arguments=[nodes=10, CC=CC, SS=CC, Distances=Distances, start_time=start_time, end_time=end_time]
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,7 +19,7 @@ import haversine as hs
 import wx
 
 
-#hola
+
 
 #FUNCTION TO READ THE PATH WITH A DIALOG BOX
 def get_path(wildcard, title):
