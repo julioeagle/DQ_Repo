@@ -23,6 +23,8 @@ import wx
 
 #FUNCTION TO READ THE PATH WITH A DIALOG BOX
 def get_path(wildcard, title):
+    """Opens a file dialog box and asks the user to select a file, the path to the file is saved as string and returned.
+    """
     app = wx.App(None)
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
     dialog = wx.FileDialog(None, title, wildcard=wildcard, style=style)
@@ -35,7 +37,11 @@ def get_path(wildcard, title):
 
 #FUNCTION TO CLEAN AND SORT THE READ DATA.
 def clean_sort_data(df_CC, df_SS):
-    
+    """Remove outliers that are out of range, from documentation both nova and df range of measurements are [0,999], [-40,70], [1,100] 
+    for PM2.5, Temperature and Relative Humidity Respectively.
+    Remove data above the whiskers of the boxplot: i.e. anomaly data.
+    Returns the full CC and SS datasets cleaned and sorted.
+    """
     #ClEAN AND SORT THE CITIZEN SCIENCE DATASET
     #Remove outliers that are out of range, from documentation both nova and df range of measurements are [0,999], [-40,70], [1,100]
     #For PM2.5, Temperature and Relative Humidity Respectively.
@@ -110,7 +116,10 @@ def clean_sort_data(df_CC, df_SS):
 
 #Precision
 def precision(window):
-
+    """This function calculates the precision of the input window dataframe. The output is a 1-record dictionary that contains the precision results of the DF and NOVA sensors in one hour.
+    Input: (window) 
+    Output: prec_dict_time {prec_df, prec_nova}
+    """
     prec_df=max(0,1-(window['pm25_df'].std()/window['pm25_df'].mean()))# 1-Coefficient of Variation (std/mean)
     prec_nova=max(0,1-(window['pm25_nova'].std()/window['pm25_nova'].mean()))# 1-Coefficient of Variation (std/mean)
     prec_dict_time={"precision_df_time":prec_df,"precision_nova_time":prec_nova}
@@ -119,6 +128,10 @@ def precision(window):
 
 #Uncertainty
 def uncertainty(window):
+    """This function compares the DF and NOVA measurements using the between sampler/instrument uncertainty as described in \cite{equivalence2010guide}, to estimate the error among both variables. The output is a one-record dictionary that contains the uncertainty DQ result in one hour. 
+    Inputs: (window) 
+    Outputs: uncer_dict_time {uncert}
+    """
     uncert=max(0,1-np.sqrt((window.pm25_df-window.pm25_nova).pow(2).mean()/2)/((window.pm25_df+window.pm25_nova).mean()/2))
     uncer_dict_time={"uncertainty_time":uncert}
     return uncer_dict_time   
@@ -126,6 +139,10 @@ def uncertainty(window):
 
 #ACCURACY
 def accuracy(node,hour, window, Distances, SS):
+    """ This function calculates the accuracy of a node at one-hour interval periods for the window dataframe. The window contains only data of the specified node and within the defined hour. Other inputs are the distances mapping dataframe and the SS dictionary to get the reference station data. The output is a one-record dictionary that contains the accuracy results of the DF and NOVA sensors in one hour.
+    Input: (node, hour, window, Distances, SS) 
+    Output: accu_dict_time {accur_df, accur_nova}
+    """
     
     pm25_df_ave=window['pm25_df'].mean()
     pm25_nova_ave=window['pm25_nova'].mean()
@@ -162,6 +179,10 @@ def accuracy(node,hour, window, Distances, SS):
 
 #CONCORDANCE
 def concordance(node, hour, window, Distances, SS):
+    """This function takes the same inputs as the accuracy() function and uses them to calculate the correlation between several variables. The output is a one-record dictionary that contains the concordance results of DF and NOVA measurements against temperature and humidity in one hour. Note that the concordance to the SIATA robust station measurements are calculated outside this function and within the eval_dq() function, to compare one-day periods because one-hour periods are not possible.
+    Inputs: (node, hour, window, Distances, SS) 
+    Outputs: conco_dict {concordance_df_nova, concordance_df_siata, concordance_df_hum, concordance_df_temp, concordance_nova_siata, concordance_nova_hum, concordance_nova_temp, }
+    """
     Closest_Station=Distances.codigoSerial_ES.loc[node]
     Closest_Station2=Distances.codigoSerial_ES.loc[node]
     
@@ -206,6 +227,10 @@ def concordance(node, hour, window, Distances, SS):
 
 #COMPLETENESS
 def completeness(node, window,start_time, end_time):
+    """This function uses the start and end times to create a reference date-time dataframe and checks whether the window dataframe misses any of its records. This information is used to calculate the completeness. The output is a one-record dictionary that contains the completeness results of the DF and NOVA sensors in one hour.
+    Inputs: (node, window, start_time, end_time) 
+    Outputs: comp_dict_time {comp_df, comp_nova}
+    """
     
     if window.fechaHora.min()==start_time and window.fechaHora.max()==end_time:
         ref_date_range = pd.DataFrame(pd.date_range(start_time,end_time, freq='1Min'),columns=["ref_fechaHora"])
@@ -235,6 +260,10 @@ def completeness(node, window,start_time, end_time):
 
 #REDUNDANCY/DUPLICATES
 def duplicates(window):
+    """This function compares the amount of unique date-time records in the window dataframe to the total number of records, to calculate the rate of repeated data. The output is a one-record dictionary that contains the duplicates DQ result in one hour.
+    Inputs: (window) 
+    Outputs: dupli_dict_time {duplic}
+    """
     repeated=len(window.index)-window['fechaHora'].nunique()
     duplic=1-repeated/len(window.index)
     dupli_dict_time={'duplicates_time':duplic} 
@@ -243,6 +272,10 @@ def duplicates(window):
 #CONFIDENCE
 #def confidence(window, STD_df, STD_nova, p):
 def confidence(window, p):
+    """This function takes the p confidence level to calculate the confidence of the DF and NOVA  measurements in the window dataframe. The output is a one-record dictionary that contains the confidence results of the DF and NOVA sensors in one hour.
+    Inputs: (window, p) 
+    Outputs: confi_dict_time {confi_df, confi_nova}
+    """
     
     alpha = 1-p/100
     z = stats.norm.ppf(1-alpha/2)#2-sided test
@@ -259,6 +292,10 @@ def confidence(window, p):
     return confi_dict_time
 
 def eval_dq(arguments):
+    """This function takes a list with the node for which the DQ will be calculated, the CC and SS dictionaries, the Distance dataframe, the start and end times and the p confidence level, to evaluate the DQ over all the defined dimensions. It splits the dataset into one-hour groups and runs a "for" loop to evaluate the DQ for every hour.  Each dimension has its own function. The results are returned in two dataframes containing the DQ evaluation at one-hour interval periods and the DQ evaluation per node, respectively. 
+    Input: ([node, CC, SS, Distances, start_time, end_time, p])
+    Output: [dim_time, dim_node]
+    """
     nodes=arguments[0]
     CC=arguments[1]
     SS=arguments[2]
